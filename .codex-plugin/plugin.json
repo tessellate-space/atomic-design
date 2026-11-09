@@ -1,0 +1,9 @@
+{
+  "name": "atomic-design",
+  "version": "0.1.2",
+  "description": "Atomic design for React teams: the method, a per-repo level map, and its enforcement, for new and existing products.",
+  "author": { "name": "Radu Buta" },
+  "license": "MIT",
+  "keywords": ["atomic-design", "react", "storybook", "design-system"],
+  "skills": "./skills/"
+}

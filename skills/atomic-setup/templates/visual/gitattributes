@@ -1,0 +1,2 @@
+# Written when the baselines pass visual.lfsThresholdMb (default 20).
+visual/baselines/** filter=lfs diff=lfs merge=lfs -text

@@ -1,0 +1,15 @@
+{
+  "levels": {
+    "atoms": ["src/shared/ui/mui/**"],
+    "molecules": ["src/shared/ui/composite/**"],
+    "organisms": ["src/features/*/ui/**"],
+    "templates": []
+  },
+  "containers": "**/*-container.tsx",
+  "pages": "src/pages/**",
+  "dataModules": ["@tanstack/react-query", "@/shared/api/*"],
+  "locales": ["en"],
+  "tests": { "unit": "npx vitest run" },
+  "rules": { "doc-card": "warn", "stories-for-every-state": "warn" },
+  "design": { "mode": "code-first", "reviewer": "tech lead" }
+}

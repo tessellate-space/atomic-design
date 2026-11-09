@@ -1,0 +1,398 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/atomic-design.schema.json",
+  "title": "atomic-design level map",
+  "description": "The .atomic-design.json file at a repo's root. It records where each atomic level lives, which modules count as data, and how strict each rule is. Fields are only ever added, never renamed or removed; a missing field takes the default stated here.",
+  "type": "object",
+  "required": [
+    "levels",
+    "dataModules"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "levels": {
+      "description": "Globs per level. Atoms may point into a package or a themed UI-kit folder, for example packages/ui/src/** or src/shared/ui/mui/**.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "atoms": {
+          "$ref": "#/$defs/globs"
+        },
+        "molecules": {
+          "$ref": "#/$defs/globs"
+        },
+        "organisms": {
+          "$ref": "#/$defs/globs"
+        },
+        "templates": {
+          "$ref": "#/$defs/globs"
+        }
+      }
+    },
+    "containers": {
+      "description": "Glob for container files. Default: **/*-container.tsx",
+      "default": "**/*-container.tsx",
+      "$ref": "#/$defs/globsOrString"
+    },
+    "pages": {
+      "description": "Glob for the route files. Default: none (pages are not checked).",
+      "$ref": "#/$defs/globsOrString"
+    },
+    "dataModules": {
+      "description": "Module specifiers forbidden below containers, such as the server-state library, the router, the API client. A trailing * matches any subpath.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "locales": {
+      "description": "Locales stories must render in. Default: [] (one locale, no switch).",
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "defaultLocale": {
+      "description": "Default: the first entry of locales.",
+      "type": "string",
+      "minLength": 1
+    },
+    "themes": {
+      "description": "Themes stories must render in. Default: [] (one theme).",
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "tests": {
+      "description": "Commands the plugin runs, and how story tests run.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "unit": {
+          "description": "Command for the unit suite, for example npx vitest run.",
+          "type": "string",
+          "minLength": 1
+        },
+        "boundary": {
+          "description": "Command for the boundary checks.",
+          "type": "string",
+          "minLength": 1
+        },
+        "stories": {
+          "description": "Command for the story tests.",
+          "type": "string",
+          "minLength": 1
+        },
+        "mode": {
+          "description": "How stories run as tests, chosen by setup and recorded here: vitest-addon (Vite with Vitest 4: every story in a real browser), test-runner (non-Vite builders: Storybook's test runner against the built Storybook) or portable (fallback: composeStories in jsdom, per locale x theme). No default; setup always writes it.",
+          "enum": [
+            "vitest-addon",
+            "test-runner",
+            "portable"
+          ]
+        },
+        "note": {
+          "description": "Why the recorded mode was chosen, for example 'portable: Vitest 3, upgrade declined; weaker than vitest-addon'. Setup writes it whenever the mode is not vitest-addon.",
+          "type": "string",
+          "minLength": 1
+        },
+        "vitestProject": {
+          "description": "Name of the Vitest project that runs the story tests in vitest-addon mode. Default: storybook",
+          "default": "storybook",
+          "type": "string",
+          "minLength": 1
+        },
+        "upgradeDeclined": {
+          "description": "True when the team declined the Vitest 4 upgrade, so reruns do not ask again. Default: false",
+          "default": false,
+          "type": "boolean"
+        }
+      }
+    },
+    "storybook": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "configDir": {
+          "description": "Default: .storybook",
+          "default": ".storybook",
+          "type": "string",
+          "minLength": 1
+        },
+        "builder": {
+          "description": "Default: vite",
+          "default": "vite",
+          "enum": [
+            "vite",
+            "webpack5"
+          ]
+        },
+        "mcp": {
+          "description": "Whether the Storybook MCP server is wired. Default: false",
+          "default": false,
+          "type": "boolean"
+        },
+        "stories": {
+          "description": "The story glob in .storybook/main. Default: all *.stories files under the components root.",
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "description": "The installed Storybook version when setup ran, as a note for later changes. Informational.",
+          "type": "string",
+          "minLength": 1
+        },
+        "url": {
+          "description": "Where the published Storybook lives, without a trailing slash, used by the review's sign-off list to build story links. Default: http://localhost:6006 (the local dev port).",
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "baseline": {
+      "description": "Path to the ratchet file of known violations. Default: .atomic-design-baseline.json",
+      "default": ".atomic-design-baseline.json",
+      "type": "string",
+      "minLength": 1
+    },
+    "tokens": {
+      "description": "Where the design tokens live, written by the foundations command. Absent until foundations has run.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "description": "css-vars (custom properties in a stylesheet), tailwind (an @theme block or the Tailwind config) or theme-object (createTheme or a similar object).",
+          "enum": ["css-vars", "tailwind", "theme-object"]
+        },
+        "path": {
+          "description": "The file or files that define the tokens, relative to the repo root. These files are exempt from the tokens-only rule.",
+          "$ref": "#/$defs/globsOrString"
+        },
+        "grid": {
+          "description": "The spacing grid in pixels, 4 or 8. Documented in docs/foundations.md; never checked by a test.",
+          "enum": [4, 8]
+        },
+        "exempt": {
+          "description": "Globs the tokens-only rule skips, for example **/icons/**. Each is reported in the README section for foundations.",
+          "$ref": "#/$defs/globs"
+        },
+        "export": {
+          "description": "theme-object only: the name of the exported theme in the file at path. Default: theme",
+          "default": "theme",
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "i18n": {
+      "description": "Options of the i18n-no-hardcoded-strings rule. Absent: the library is checked, with the default attributes.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "scope": {
+          "description": "library (atoms to templates) or app (the library plus containers and pages). Default: library.",
+          "default": "library",
+          "enum": ["library", "app"]
+        },
+        "attributes": {
+          "description": "JSX attributes whose string literals count as user-facing text. Replaces the default list: aria-label, title, placeholder, alt.",
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "allow": {
+          "description": "Exact strings that may appear as they are, such as a brand name.",
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "exempt": {
+          "description": "Globs the rule skips.",
+          "$ref": "#/$defs/globs"
+        }
+      }
+    },
+    "hook": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "description": "Whether the edit hook runs. Default: false. Setup writes true only when the developer opts in; the hook ignores a map without hook.enabled set to true.",
+          "default": false,
+          "type": "boolean"
+        }
+      }
+    },
+    "team": {
+      "description": "Name of the team that owns the library. The component flow proposes it as a new component's owner. Default: none (the agent asks).",
+      "type": "string",
+      "minLength": 1
+    },
+    "review": {
+      "description": "Thresholds for review advice, such as maxVariantProps (default 4). The component flow refuses a new variant at this count and proposes a separate component; review reports it as advice. Never fails a build.",
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "properties": {
+        "maxVariantProps": {
+          "default": 4,
+          "type": "integer",
+          "minimum": 0
+        },
+        "chromatic": {
+          "description": "The Chromatic project or build URL the review's sign-off list links, for example https://www.chromatic.com/builds?appId=abc123. Default: none (no link). The plugin never sets Chromatic up.",
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "rules": {
+      "description": "Severity per tested rule: error (fails the suite), warn (reported, does not fail) or off. Default: error for every tested rule. data-in-containers accepts only error.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "atomic-components": {
+          "$ref": "#/$defs/severity"
+        },
+        "data-in-containers": {
+          "description": "Only error is accepted. The rule can be relaxed only through the baseline, never switched off.",
+          "enum": [
+            "error"
+          ],
+          "x-error": "data-in-containers can only be 'error'; it can be relaxed only through the baseline"
+        },
+        "stories-for-every-state": {
+          "$ref": "#/$defs/severity"
+        },
+        "tokens-only": {
+          "$ref": "#/$defs/severity"
+        },
+        "i18n-no-hardcoded-strings": {
+          "$ref": "#/$defs/severity"
+        },
+        "doc-card": {
+          "$ref": "#/$defs/severity"
+        },
+        "a11y": {
+          "$ref": "#/$defs/severity",
+          "description": "Accessibility violations per story in vitest-addon mode. error fails the story test, warn reports it without failing, off skips it. Default: warn."
+        }
+      }
+    },
+    "design": {
+      "description": "How components and visual changes are approved.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "description": "figma, styleguide or code-first. Default: figma.",
+          "default": "figma",
+          "enum": [
+            "figma",
+            "styleguide",
+            "code-first"
+          ]
+        },
+        "reviewer": {
+          "description": "The role or person who approves components and visual changes. Default: designer in figma and styleguide modes; must be named in code-first.",
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "if": {
+        "properties": {
+          "mode": {
+            "const": "code-first"
+          }
+        },
+        "required": [
+          "mode"
+        ]
+      },
+      "then": {
+        "required": [
+          "reviewer"
+        ],
+        "x-error": "design.reviewer must be named when design.mode is code-first"
+      }
+    },
+    "visual": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "description": "Default: off",
+          "default": "off",
+          "enum": [
+            "off",
+            "local",
+            "chromatic"
+          ]
+        },
+        "matrix": {
+          "description": "Which locale x theme combinations are snapshotted. default: the default locale x every theme, plus the longest locale in the default theme. all: every combination. Default: default",
+          "default": "default",
+          "enum": [
+            "default",
+            "all"
+          ]
+        },
+        "viewports": {
+          "description": "Viewports to capture. desktop is 1280x800, mobile is 390x844. Default: [desktop]",
+          "default": [
+            "desktop"
+          ],
+          "type": "array",
+          "items": {
+            "enum": [
+              "desktop",
+              "mobile"
+            ]
+          }
+        },
+        "lfsThresholdMb": {
+          "description": "Baselines larger than this many megabytes in total move to Git LFS (setup writes .gitattributes and says so). Default: 20",
+          "default": 20,
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    }
+  },
+  "$defs": {
+    "globs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "globsOrString": {
+      "type": [
+        "string",
+        "array"
+      ],
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minLength": 1
+    },
+    "severity": {
+      "enum": [
+        "error",
+        "warn",
+        "off"
+      ]
+    }
+  }
+}

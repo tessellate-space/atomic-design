@@ -1,0 +1,14 @@
+{
+  "title": "Willkommen",
+  "cta": "Loslegen",
+  "greeting": "Hallo, {{name}}",
+  "orders": {
+    "title": "Bestellungen",
+    "empty": "Noch keine Bestellungen",
+    "status": {
+      "open": "Offen",
+      "shipped": "Versandt",
+      "cancelled": "Storniert"
+    }
+  }
+}

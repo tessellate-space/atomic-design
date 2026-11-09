@@ -1,0 +1,18 @@
+# Add as its own job. Same script and same browser image as the developer's machine.
+  visual:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # atomic:if lfs
+          lfs: true
+          # atomic:end
+          fetch-depth: 1
+      - name: Compare snapshots
+        run: sh scripts/visual.sh compare
+      - name: Keep the diff images
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-results
+          path: visual/results

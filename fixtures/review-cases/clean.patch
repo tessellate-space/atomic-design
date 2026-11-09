@@ -1,0 +1,118 @@
+diff --git a/src/components/molecules/order-count.stories.tsx b/src/components/molecules/order-count.stories.tsx
+new file mode 100644
+index 0000000..435bf0e
+--- /dev/null
++++ b/src/components/molecules/order-count.stories.tsx
+@@ -0,0 +1,27 @@
++import type { Meta, StoryObj } from "@storybook/react-vite";
++import { OrderCount } from "./order-count";
++
++const meta = {
++  title: "Molecules/OrderCount",
++  component: OrderCount,
++  args: { count: 12, onRefresh: () => {} },
++  parameters: {
++    atomic: {
++      status: "experimental",
++      owner: "Web team",
++      design: "https://www.figma.com/design/seeded/order-count",
++      flow: "Shows how many orders are loaded and lets the reader reload them; sits above the orders list.",
++      dos: ["Pass the count from the container"],
++      donts: ["Do not fetch inside it"],
++      combinesWith: ["OrderList", "Button"],
++    },
++  },
++} satisfies Meta<typeof OrderCount>;
++export default meta;
++
++type Story = StoryObj<typeof meta>;
++
++export const Default: Story = {};
++export const Zero: Story = { args: { count: 0 } };
++export const Refreshing: Story = { args: { refreshing: true } };
++export const LongestCopy: Story = { args: { count: 1234567 } };
+diff --git a/src/components/molecules/order-count.tsx b/src/components/molecules/order-count.tsx
+new file mode 100644
+index 0000000..08aa83f
+--- /dev/null
++++ b/src/components/molecules/order-count.tsx
+@@ -0,0 +1,15 @@
++import { useTranslation } from "react-i18next";
++import { Button } from "~/components/ui/button";
++
++export type OrderCountProps = { count: number; refreshing?: boolean; onRefresh: () => void };
++
++// Controlled: the container owns the data and passes the count in.
++export function OrderCount({ count, refreshing, onRefresh }: OrderCountProps) {
++  const { t } = useTranslation();
++  return (
++    <div className="flex items-center gap-2 py-2">
++      <span className="text-sm">{t("orderCount.label", { count })}</span>
++      <Button variant="outline" disabled={refreshing} onClick={onRefresh}>{t("orderCount.refresh")}</Button>
++    </div>
++  );
++}
+diff --git a/src/features/orders/order-count-container.tsx b/src/features/orders/order-count-container.tsx
+new file mode 100644
+index 0000000..0618bd1
+--- /dev/null
++++ b/src/features/orders/order-count-container.tsx
+@@ -0,0 +1,16 @@
++import { useQuery, useQueryClient } from "@tanstack/react-query";
++import { OrderCount } from "~/components/molecules/order-count";
++import { fetchOrders } from "~/lib/api";
++import { ordersKeys } from "./query-keys";
++
++export function OrderCountContainer() {
++  const client = useQueryClient();
++  const orders = useQuery({ queryKey: ordersKeys.all, queryFn: fetchOrders });
++  return (
++    <OrderCount
++      count={orders.data?.length ?? 0}
++      refreshing={orders.isFetching}
++      onRefresh={() => void client.invalidateQueries({ queryKey: ordersKeys.all })}
++    />
++  );
++}
+diff --git a/src/features/orders/query-keys.ts b/src/features/orders/query-keys.ts
+new file mode 100644
+index 0000000..60532d2
+--- /dev/null
++++ b/src/features/orders/query-keys.ts
+@@ -0,0 +1,4 @@
++// One place for query keys, so invalidation reaches every user of the data.
++export const ordersKeys = {
++  all: ["orders"] as const,
++};
+diff --git a/src/locales/de.json b/src/locales/de.json
+index 445bd3b..7642b66 100644
+--- a/src/locales/de.json
++++ b/src/locales/de.json
+@@ -16,5 +16,9 @@
+   },
+   "filterBar": {
+     "all": "Alle"
++  },
++  "orderCount": {
++    "label": "{{count}} Bestellungen geladen",
++    "refresh": "Aktualisieren"
+   }
+-}
+\ No newline at end of file
++}
+diff --git a/src/locales/en.json b/src/locales/en.json
+index 3ad3cff..1a4881a 100644
+--- a/src/locales/en.json
++++ b/src/locales/en.json
+@@ -16,5 +16,9 @@
+   },
+   "filterBar": {
+     "all": "All"
++  },
++  "orderCount": {
++    "label": "{{count}} orders loaded",
++    "refresh": "Refresh"
+   }
+-}
+\ No newline at end of file
++}

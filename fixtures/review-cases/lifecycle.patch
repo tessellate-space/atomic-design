@@ -1,0 +1,146 @@
+diff --git a/.atomic-design-baseline.json b/.atomic-design-baseline.json
+index 0931a54..2ab58b7 100644
+--- a/.atomic-design-baseline.json
++++ b/.atomic-design-baseline.json
+@@ -4,19 +4,9 @@
+     "file": "src/components/ui/button.tsx",
+     "detail": "no doc card"
+   },
+-  {
+-    "rule": "doc-card",
+-    "file": "src/features/orders/ui/order-list.tsx",
+-    "detail": "no doc card"
+-  },
+   {
+     "rule": "stories-for-every-state",
+     "file": "src/components/ui/button.tsx",
+     "detail": "no stories file"
+-  },
+-  {
+-    "rule": "stories-for-every-state",
+-    "file": "src/features/orders/ui/order-list.tsx",
+-    "detail": "no stories file"
+   }
+ ]
+diff --git a/src/components/molecules/filter-bar.stories.tsx b/src/components/molecules/filter-bar.stories.tsx
+index 8eb4347..000cbe1 100644
+--- a/src/components/molecules/filter-bar.stories.tsx
++++ b/src/components/molecules/filter-bar.stories.tsx
+@@ -13,7 +13,8 @@ const meta = {
+   args: { label: "Filter by status", options, value: null, onChange: () => {} },
+   parameters: {
+     atomic: {
+-      status: "experimental",
++      status: "deprecated",
++      replacedBy: "FilterSelect",
+       owner: "Web team",
+       flow: "Narrows a list to one value of a small fixed set; sits above the list it filters.",
+       dos: ["Keep the set small and fixed", "Let the parent own the selection"],
+diff --git a/src/components/molecules/filter-select.stories.tsx b/src/components/molecules/filter-select.stories.tsx
+new file mode 100644
+index 0000000..1a34c5e
+--- /dev/null
++++ b/src/components/molecules/filter-select.stories.tsx
+@@ -0,0 +1,30 @@
++import type { Meta, StoryObj } from "@storybook/react-vite";
++import { FilterSelect } from "./filter-select";
++
++const options = [
++  { value: "open", label: "Open" },
++  { value: "shipped", label: "Shipped" },
++];
++
++const meta = {
++  title: "Molecules/FilterSelect",
++  component: FilterSelect,
++  args: { label: "Filter by status", options, value: "open", onChange: () => {} },
++  parameters: {
++    atomic: {
++      status: "experimental",
++      owner: "Web team",
++      design: "https://www.figma.com/design/seeded/filter-select",
++      flow: "Narrows a list to one value of a fixed set, as a dropdown; replaces FilterBar.",
++      combinesWith: ["OrderList"],
++    },
++  },
++} satisfies Meta<typeof FilterSelect>;
++export default meta;
++
++type Story = StoryObj<typeof meta>;
++
++export const Default: Story = {};
++export const Empty: Story = { args: { options: [], value: "" } };
++export const Disabled: Story = { args: { disabled: true } };
++export const LongestCopy: Story = { args: { options: [{ value: "open", label: "Offene Bestellungen in Bearbeitung" }, { value: "shipped", label: "Bereits versandte Bestellungen" }] } };
+diff --git a/src/components/molecules/filter-select.tsx b/src/components/molecules/filter-select.tsx
+new file mode 100644
+index 0000000..97912ed
+--- /dev/null
++++ b/src/components/molecules/filter-select.tsx
+@@ -0,0 +1,19 @@
++export type FilterSelectProps = {
++  label: string;
++  options: Array<{ value: string; label: string }>;
++  value: string;
++  onChange: (value: string) => void;
++  disabled?: boolean;
++};
++
++// Controlled: the parent owns the selection.
++export function FilterSelect({ label, options, value, onChange, disabled }: FilterSelectProps) {
++  return (
++    <label className="flex flex-col gap-1 py-2">
++      <span className="text-sm">{label}</span>
++      <select className="rounded-control border border-line px-2 py-1" value={value} disabled={disabled} onChange={(e) => onChange(e.target.value)}>
++        {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
++      </select>
++    </label>
++  );
++}
+diff --git a/src/features/orders/ui/order-list.tsx b/src/features/orders/ui/order-list.tsx
+deleted file mode 100644
+index f74cdec..0000000
+--- a/src/features/orders/ui/order-list.tsx
++++ /dev/null
+@@ -1,17 +0,0 @@
+-import { useTranslation } from "react-i18next";
+-import type { Order } from "~/lib/api";
+-
+-export function OrderList({ orders }: { orders: Order[] }) {
+-  const { t } = useTranslation();
+-  if (orders.length === 0) return <p className="text-sm text-gray-500">{t("orders.empty")}</p>;
+-  return (
+-    <ul className="divide-y">
+-      {orders.map((o) => (
+-        <li key={o.id} className="flex justify-between py-2">
+-          <span>{o.customer}</span>
+-          <span>{t(`orders.status.${o.status}`)}</span>
+-        </li>
+-      ))}
+-    </ul>
+-  );
+-}
+diff --git a/src/pages/invoices-page.tsx b/src/pages/invoices-page.tsx
+new file mode 100644
+index 0000000..0e6db7d
+--- /dev/null
++++ b/src/pages/invoices-page.tsx
+@@ -0,0 +1,18 @@
++import { useState } from "react";
++import { useTranslation } from "react-i18next";
++import { FilterBar } from "~/components/molecules/filter-bar";
++
++export default function InvoicesPage() {
++  const { t } = useTranslation();
++  const [status, setStatus] = useState<string | null>(null);
++  return (
++    <main className="mx-auto max-w-xl p-8">
++      <FilterBar
++        label={t("orders.filter.label")}
++        options={[{ value: "open", label: t("orders.status.open") }]}
++        value={status}
++        onChange={setStatus}
++      />
++    </main>
++  );
++}

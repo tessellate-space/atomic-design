@@ -1,0 +1,15 @@
+{
+  "name": "atomic-design-marketplace",
+  "owner": {
+    "name": "Radu Buta"
+  },
+  "description": "Atomic design for React teams, as a Claude Code plugin.",
+  "plugins": [
+    {
+      "name": "atomic-design",
+      "source": "./",
+      "description": "Atomic design for React teams: the method, a per-repo level map, and its enforcement.",
+      "version": "0.1.2"
+    }
+  ]
+}

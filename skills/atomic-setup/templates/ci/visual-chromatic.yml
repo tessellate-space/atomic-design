@@ -1,0 +1,13 @@
+# Replaces the `visual` job. The team adds the project token as a repository secret named
+# CHROMATIC_PROJECT_TOKEN; the plugin never reads or stores it.
+  chromatic:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: {{install_command}}
+      - run: npx chromatic --exit-zero-on-changes
+        env:
+          CHROMATIC_PROJECT_TOKEN: {{chromatic_token_ref}}

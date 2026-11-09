@@ -1,0 +1,11 @@
+.root {
+  display: inline-flex;
+  gap: 0.5rem;
+  align-items: center;
+  font-family: system-ui, sans-serif;
+}
+
+.value {
+  min-width: 2rem;
+  text-align: center;
+}

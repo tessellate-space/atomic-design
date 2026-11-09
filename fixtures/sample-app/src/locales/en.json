@@ -1,0 +1,14 @@
+{
+  "title": "Welcome",
+  "cta": "Get started",
+  "greeting": "Hello, {{name}}",
+  "orders": {
+    "title": "Orders",
+    "empty": "No orders yet",
+    "status": {
+      "open": "Open",
+      "shipped": "Shipped",
+      "cancelled": "Cancelled"
+    }
+  }
+}

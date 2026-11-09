@@ -1,0 +1,561 @@
+diff --git a/.atomic-design-baseline.json b/.atomic-design-baseline.json
+index 0931a54..a454332 100644
+--- a/.atomic-design-baseline.json
++++ b/.atomic-design-baseline.json
+@@ -1,4 +1,9 @@
+ [
++  {
++    "rule": "doc-card",
++    "file": "src/components/molecules/legacy-banner.tsx",
++    "detail": "no doc card"
++  },
+   {
+     "rule": "doc-card",
+     "file": "src/components/ui/button.tsx",
+@@ -9,6 +14,11 @@
+     "file": "src/features/orders/ui/order-list.tsx",
+     "detail": "no doc card"
+   },
++  {
++    "rule": "stories-for-every-state",
++    "file": "src/components/molecules/legacy-banner.tsx",
++    "detail": "no stories file"
++  },
+   {
+     "rule": "stories-for-every-state",
+     "file": "src/components/ui/button.tsx",
+diff --git a/src/components/molecules/filter-bar.stories.tsx b/src/components/molecules/filter-bar.stories.tsx
+index 8eb4347..40f3ebc 100644
+--- a/src/components/molecules/filter-bar.stories.tsx
++++ b/src/components/molecules/filter-bar.stories.tsx
+@@ -41,3 +41,4 @@ export const LongestCopy: Story = {
+   },
+ };
+ export const CompactPillStacked: Story = { args: { compact: true, pill: true, stacked: true } };
++export const Inline: Story = { args: { inline: true } };
+diff --git a/src/components/molecules/filter-bar.tsx b/src/components/molecules/filter-bar.tsx
+index ef67279..270de83 100644
+--- a/src/components/molecules/filter-bar.tsx
++++ b/src/components/molecules/filter-bar.tsx
+@@ -12,14 +12,15 @@ export type FilterBarProps = {
+   compact?: boolean;
+   pill?: boolean;
+   stacked?: boolean;
++  inline?: boolean;
+ };
+ 
+ // Controlled: the parent owns the selection. null means "all".
+-export function FilterBar({ label, options, value, onChange, disabled, compact, pill, stacked }: FilterBarProps) {
++export function FilterBar({ label, options, value, onChange, disabled, compact, pill, stacked, inline }: FilterBarProps) {
+   const { t } = useTranslation();
+   const choices: Array<{ value: string | null; label: string }> = [{ value: null, label: t("filterBar.all") }, ...options];
+   return (
+-    <div role="group" aria-label={label} className={`flex gap-2 py-2 ${stacked ? "flex-col" : "flex-wrap"}`}>
++    <div role="group" aria-label={label} className={`flex gap-2 py-2 ${stacked ? "flex-col" : "flex-wrap"} ${inline ? "items-center" : ""}`}>
+       {choices.map((c) => (
+         <Button
+           key={c.value ?? "all"}
+diff --git a/src/components/molecules/filter-empty.stories.tsx b/src/components/molecules/filter-empty.stories.tsx
+new file mode 100644
+index 0000000..4e9d325
+--- /dev/null
++++ b/src/components/molecules/filter-empty.stories.tsx
+@@ -0,0 +1,20 @@
++import type { Meta, StoryObj } from "@storybook/react-vite";
++import { FilterEmpty } from "./filter-empty";
++
++const meta = {
++  title: "Molecules/FilterEmpty",
++  component: FilterEmpty,
++  args: { onClear: () => {} },
++  parameters: {
++    atomic: {
++      status: "experimental",
++      owner: "Web team",
++      design: "https://www.figma.com/design/seeded/orders",
++    },
++  },
++} satisfies Meta<typeof FilterEmpty>;
++export default meta;
++
++type Story = StoryObj<typeof meta>;
++
++export const Default: Story = {};
+diff --git a/src/components/molecules/filter-empty.tsx b/src/components/molecules/filter-empty.tsx
+new file mode 100644
+index 0000000..f834938
+--- /dev/null
++++ b/src/components/molecules/filter-empty.tsx
+@@ -0,0 +1,10 @@
++import { Button } from "~/components/ui/button";
++
++export function FilterEmpty({ onClear }: { onClear: () => void }) {
++  return (
++    <div className="flex flex-col items-start gap-2 py-2">
++      <p className="text-sm">No orders match this filter.</p>
++      <Button variant="outline" onClick={onClear}>Clear filter</Button>
++    </div>
++  );
++}
+diff --git a/src/components/molecules/legacy-banner.tsx b/src/components/molecules/legacy-banner.tsx
+new file mode 100644
+index 0000000..f1feade
+--- /dev/null
++++ b/src/components/molecules/legacy-banner.tsx
+@@ -0,0 +1,3 @@
++export function LegacyBanner({ text }: { text: string }) {
++  return <p role="note" className="py-2 text-sm">{text}</p>;
++}
+diff --git a/src/components/molecules/pager.stories.tsx b/src/components/molecules/pager.stories.tsx
+new file mode 100644
+index 0000000..895ba34
+--- /dev/null
++++ b/src/components/molecules/pager.stories.tsx
+@@ -0,0 +1,20 @@
++import type { Meta, StoryObj } from "@storybook/react-vite";
++import { Pager } from "./pager";
++
++const meta = {
++  title: "Molecules/Pager",
++  component: Pager,
++  args: { page: 2, pageCount: 5, onPageChange: () => {} },
++  parameters: {
++    atomic: {
++      status: "experimental",
++      owner: "Web team",
++      design: "https://www.figma.com/design/seeded/orders",
++    },
++  },
++} satisfies Meta<typeof Pager>;
++export default meta;
++
++type Story = StoryObj<typeof meta>;
++
++export const Default: Story = {};
+diff --git a/src/components/molecules/pager.tsx b/src/components/molecules/pager.tsx
+new file mode 100644
+index 0000000..fce7d80
+--- /dev/null
++++ b/src/components/molecules/pager.tsx
+@@ -0,0 +1,15 @@
++import { useTranslation } from "react-i18next";
++import { Button } from "~/components/ui/button";
++
++export type PagerProps = { page: number; pageCount: number; onPageChange: (page: number) => void; disabled?: boolean };
++
++export function Pager({ page, pageCount, onPageChange, disabled }: PagerProps) {
++  const { t } = useTranslation();
++  return (
++    <nav className="flex items-center gap-2 py-2" aria-label={t("pager.position", { page, count: pageCount })}>
++      <Button variant="outline" disabled={disabled || page <= 1} onClick={() => onPageChange(page - 1)}>{t("pager.prev")}</Button>
++      <span className="text-sm">{t("pager.position", { page, count: pageCount })}</span>
++      <Button variant="outline" disabled={disabled || page >= pageCount} onClick={() => onPageChange(page + 1)}>{t("pager.next")}</Button>
++    </nav>
++  );
++}
+diff --git a/src/components/molecules/plain-note.stories.tsx b/src/components/molecules/plain-note.stories.tsx
+new file mode 100644
+index 0000000..c4467cf
+--- /dev/null
++++ b/src/components/molecules/plain-note.stories.tsx
+@@ -0,0 +1,10 @@
++import type { Meta, StoryObj } from "@storybook/react-vite";
++import { PlainNote } from "./plain-note";
++
++const meta = { title: "Molecules/PlainNote", component: PlainNote, args: { text: "Orders sync every five minutes." } } satisfies Meta<typeof PlainNote>;
++export default meta;
++
++type Story = StoryObj<typeof meta>;
++
++export const Default: Story = {};
++export const LongestCopy: Story = { args: { text: "Bestellungen werden alle fünf Minuten mit dem Warenwirtschaftssystem abgeglichen und danach angezeigt." } };
+diff --git a/src/components/molecules/plain-note.tsx b/src/components/molecules/plain-note.tsx
+new file mode 100644
+index 0000000..27db00b
+--- /dev/null
++++ b/src/components/molecules/plain-note.tsx
+@@ -0,0 +1,3 @@
++export function PlainNote({ text }: { text: string }) {
++  return <p className="rounded-control border border-line p-2 text-sm">{text}</p>;
++}
+diff --git a/src/components/molecules/recent-orders.stories.tsx b/src/components/molecules/recent-orders.stories.tsx
+new file mode 100644
+index 0000000..370fb82
+--- /dev/null
++++ b/src/components/molecules/recent-orders.stories.tsx
+@@ -0,0 +1,22 @@
++import type { Meta, StoryObj } from "@storybook/react-vite";
++import { RecentOrders } from "./recent-orders";
++
++const meta = {
++  title: "Molecules/RecentOrders",
++  component: RecentOrders,
++  args: { orders: [{ id: "1", customer: "Ada", status: "open" }] },
++  parameters: {
++    atomic: {
++      status: "experimental",
++      owner: "Web team",
++      design: "https://www.figma.com/design/seeded/orders",
++    },
++  },
++} satisfies Meta<typeof RecentOrders>;
++export default meta;
++
++type Story = StoryObj<typeof meta>;
++
++export const Default: Story = {};
++export const Empty: Story = { args: { orders: [] } };
++export const LongestCopy: Story = { args: { orders: [{ id: "1", customer: "Hildegard von Bingen-Meyer und Söhne", status: "cancelled" }] } };
+diff --git a/src/components/molecules/recent-orders.tsx b/src/components/molecules/recent-orders.tsx
+new file mode 100644
+index 0000000..8d9eca9
+--- /dev/null
++++ b/src/components/molecules/recent-orders.tsx
+@@ -0,0 +1,13 @@
++import { useTranslation } from "react-i18next";
++import { OrderList } from "~/features/orders/ui/order-list";
++import type { Order } from "~/lib/api";
++
++export function RecentOrders({ orders }: { orders: Order[] }) {
++  const { t } = useTranslation();
++  return (
++    <section className="flex flex-col gap-2">
++      <h3 className="font-medium">{t("recentOrders.title")}</h3>
++      <OrderList orders={orders.slice(0, 3)} />
++    </section>
++  );
++}
+diff --git a/src/components/molecules/refresh-button.stories.tsx b/src/components/molecules/refresh-button.stories.tsx
+new file mode 100644
+index 0000000..8895203
+--- /dev/null
++++ b/src/components/molecules/refresh-button.stories.tsx
+@@ -0,0 +1,20 @@
++import type { Meta, StoryObj } from "@storybook/react-vite";
++import { RefreshButton } from "./refresh-button";
++
++const meta = {
++  title: "Molecules/RefreshButton",
++  component: RefreshButton,
++  args: {},
++  parameters: {
++    atomic: {
++      status: "experimental",
++      owner: "Web team",
++      design: "https://www.figma.com/design/seeded/orders",
++    },
++  },
++} satisfies Meta<typeof RefreshButton>;
++export default meta;
++
++type Story = StoryObj<typeof meta>;
++
++export const Default: Story = {};
+diff --git a/src/components/molecules/refresh-button.tsx b/src/components/molecules/refresh-button.tsx
+new file mode 100644
+index 0000000..5f8292b
+--- /dev/null
++++ b/src/components/molecules/refresh-button.tsx
+@@ -0,0 +1,15 @@
++import { useState } from "react";
++import { useTranslation } from "react-i18next";
++import { Button } from "~/components/ui/button";
++import { fetchOrders } from "~/lib/api";
++
++export function RefreshButton() {
++  const { t } = useTranslation();
++  const [count, setCount] = useState<number | null>(null);
++  return (
++    <div className="flex items-center gap-2 py-2">
++      <Button variant="outline" onClick={async () => setCount((await fetchOrders()).length)}>{t("refresh.label")}</Button>
++      {count !== null && <span className="text-sm">{t("refresh.count", { count })}</span>}
++    </div>
++  );
++}
+diff --git a/src/components/molecules/result-count.stories.tsx b/src/components/molecules/result-count.stories.tsx
+new file mode 100644
+index 0000000..ef386b5
+--- /dev/null
++++ b/src/components/molecules/result-count.stories.tsx
+@@ -0,0 +1,24 @@
++import type { Meta, StoryObj } from "@storybook/react-vite";
++import { ResultCount } from "./result-count";
++
++const meta = {
++  title: "Molecules/ResultCount",
++  component: ResultCount,
++  args: { count: 12, onReset: () => {} },
++  parameters: {
++    atomic: {
++      status: "stable",
++      owner: "Web team",
++      approvedBy: "designer",
++      approvedOn: "2026-10-01",
++      flow: "Shows how many orders match the current filter.",
++      combinesWith: ["OrderTable", "Button"],
++    },
++  },
++} satisfies Meta<typeof ResultCount>;
++export default meta;
++
++type Story = StoryObj<typeof meta>;
++
++export const Default: Story = {};
++export const Zero: Story = { args: { count: 0 } };
+diff --git a/src/components/molecules/result-count.tsx b/src/components/molecules/result-count.tsx
+new file mode 100644
+index 0000000..f1bfc94
+--- /dev/null
++++ b/src/components/molecules/result-count.tsx
+@@ -0,0 +1,12 @@
++import { useTranslation } from "react-i18next";
++import { Button } from "~/components/ui/button";
++
++export function ResultCount({ count, onReset }: { count: number; onReset: () => void }) {
++  const { t } = useTranslation();
++  return (
++    <div className="flex items-center gap-2 py-2">
++      <span className="text-sm">{t("resultCount.label", { count })}</span>
++      <Button variant="outline" onClick={onReset}>{t("resultCount.reset")}</Button>
++    </div>
++  );
++}
+diff --git a/src/components/molecules/section-heading.stories.tsx b/src/components/molecules/section-heading.stories.tsx
+new file mode 100644
+index 0000000..4aa1b36
+--- /dev/null
++++ b/src/components/molecules/section-heading.stories.tsx
+@@ -0,0 +1,21 @@
++import type { Meta, StoryObj } from "@storybook/react-vite";
++import { SectionHeading } from "./section-heading";
++
++const meta = {
++  title: "Molecules/SectionHeading",
++  component: SectionHeading,
++  args: { title: "Orders", subtitle: "Everything placed this week" },
++  parameters: {
++    atomic: {
++      status: "experimental",
++      owner: "Web team",
++      design: "https://www.figma.com/design/seeded/orders",
++    },
++  },
++} satisfies Meta<typeof SectionHeading>;
++export default meta;
++
++type Story = StoryObj<typeof meta>;
++
++export const Default: Story = {};
++export const LongestCopy: Story = { args: { title: "Bestellungen der vergangenen Kalenderwoche", subtitle: "Alle Bestellungen inklusive stornierter und zurückgegebener Positionen" } };
+diff --git a/src/components/molecules/section-heading.tsx b/src/components/molecules/section-heading.tsx
+new file mode 100644
+index 0000000..1a9d2ce
+--- /dev/null
++++ b/src/components/molecules/section-heading.tsx
+@@ -0,0 +1,8 @@
++export function SectionHeading({ title, subtitle }: { title: string; subtitle: string }) {
++  return (
++    <header className="mt-[13px] mb-[22px] flex flex-col gap-[7px]">
++      <h2 className="text-xl font-semibold">{title}</h2>
++      <p className="text-sm">{subtitle}</p>
++    </header>
++  );
++}
+diff --git a/src/components/molecules/status-picker.stories.tsx b/src/components/molecules/status-picker.stories.tsx
+new file mode 100644
+index 0000000..b4bbf36
+--- /dev/null
++++ b/src/components/molecules/status-picker.stories.tsx
+@@ -0,0 +1,22 @@
++import type { Meta, StoryObj } from "@storybook/react-vite";
++import { StatusPicker } from "./status-picker";
++
++const meta = {
++  title: "Molecules/StatusPicker",
++  component: StatusPicker,
++  args: { label: "Status", options: [{ value: "open", label: "Open" }, { value: "shipped", label: "Shipped" }], value: null, onChange: () => {} },
++  parameters: {
++    atomic: {
++      status: "experimental",
++      owner: "Web team",
++      design: "https://www.figma.com/design/seeded/orders",
++    },
++  },
++} satisfies Meta<typeof StatusPicker>;
++export default meta;
++
++type Story = StoryObj<typeof meta>;
++
++export const Default: Story = {};
++export const Selected: Story = { args: { value: "open" } };
++export const Empty: Story = { args: { options: [] } };
+diff --git a/src/components/molecules/status-picker.tsx b/src/components/molecules/status-picker.tsx
+new file mode 100644
+index 0000000..255e6b4
+--- /dev/null
++++ b/src/components/molecules/status-picker.tsx
+@@ -0,0 +1,17 @@
++import { Button } from "~/components/ui/button";
++
++type Option = { value: string; label: string };
++export type StatusPickerProps = { label: string; options: Option[]; value: string | null; onChange: (value: string | null) => void };
++
++// Controlled: the parent owns the selection.
++export function StatusPicker({ label, options, value, onChange }: StatusPickerProps) {
++  return (
++    <div role="group" aria-label={label} className="flex flex-wrap gap-2 py-2">
++      {options.map((o) => (
++        <Button key={o.value} type="button" variant={o.value === value ? "default" : "outline"} aria-pressed={o.value === value} onClick={() => onChange(o.value === value ? null : o.value)}>
++          {o.label}
++        </Button>
++      ))}
++    </div>
++  );
++}
+diff --git a/src/components/ui/labelled-input.stories.tsx b/src/components/ui/labelled-input.stories.tsx
+new file mode 100644
+index 0000000..defc9dd
+--- /dev/null
++++ b/src/components/ui/labelled-input.stories.tsx
+@@ -0,0 +1,22 @@
++import type { Meta, StoryObj } from "@storybook/react-vite";
++import { LabelledInput } from "./labelled-input";
++
++const meta = {
++  title: "Atoms/LabelledInput",
++  component: LabelledInput,
++  args: { label: "Customer", value: "Ada", onChange: () => {} },
++  parameters: {
++    atomic: {
++      status: "experimental",
++      owner: "Web team",
++      design: "https://www.figma.com/design/seeded/orders",
++    },
++  },
++} satisfies Meta<typeof LabelledInput>;
++export default meta;
++
++type Story = StoryObj<typeof meta>;
++
++export const Default: Story = {};
++export const Empty: Story = { args: { value: "" } };
++export const LongestCopy: Story = { args: { label: "Kundenname laut Bestellung und Rechnungsadresse", value: "Hildegard von Bingen-Meyer" } };
+diff --git a/src/components/ui/labelled-input.tsx b/src/components/ui/labelled-input.tsx
+new file mode 100644
+index 0000000..d65d013
+--- /dev/null
++++ b/src/components/ui/labelled-input.tsx
+@@ -0,0 +1,8 @@
++export function LabelledInput({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
++  return (
++    <label className="flex flex-col gap-1">
++      <span className="text-sm">{label}</span>
++      <input className="rounded-control border border-line px-2 py-1" value={value} onChange={(e) => onChange(e.target.value)} />
++    </label>
++  );
++}
+diff --git a/src/features/orders/order-archive-container.tsx b/src/features/orders/order-archive-container.tsx
+new file mode 100644
+index 0000000..fac44a8
+--- /dev/null
++++ b/src/features/orders/order-archive-container.tsx
+@@ -0,0 +1,8 @@
++import { useQuery } from "@tanstack/react-query";
++import { fetchOrders } from "~/lib/api";
++import { OrderList } from "./ui/order-list";
++
++export function OrderArchiveContainer() {
++  const orders = useQuery({ queryKey: ["orders", "archive"], queryFn: fetchOrders });
++  return <OrderList orders={orders.data ?? []} />;
++}
+diff --git a/src/features/orders/query-keys.ts b/src/features/orders/query-keys.ts
+new file mode 100644
+index 0000000..0eb6b3c
+--- /dev/null
++++ b/src/features/orders/query-keys.ts
+@@ -0,0 +1,5 @@
++// One place for query keys, so invalidation reaches every user of the data.
++export const ordersKeys = {
++  all: ["orders"] as const,
++  recent: () => [...ordersKeys.all, "recent"] as const,
++};
+diff --git a/src/features/orders/recent-orders-container.tsx b/src/features/orders/recent-orders-container.tsx
+new file mode 100644
+index 0000000..69b06b7
+--- /dev/null
++++ b/src/features/orders/recent-orders-container.tsx
+@@ -0,0 +1,16 @@
++import { useQuery } from "@tanstack/react-query";
++import { useTranslation } from "react-i18next";
++import { RecentOrders } from "~/components/molecules/recent-orders";
++import { fetchOrders } from "~/lib/api";
++import { ordersKeys } from "./query-keys";
++
++export function RecentOrdersContainer() {
++  const { t } = useTranslation();
++  const orders = useQuery({ queryKey: ordersKeys.recent(), queryFn: fetchOrders });
++  return (
++    <section className="rounded-control border border-line p-4">
++      <h2 className="mb-2 text-lg font-semibold">{t("recentOrders.heading")}</h2>
++      <RecentOrders orders={orders.data ?? []} />
++    </section>
++  );
++}
+diff --git a/src/locales/de.json b/src/locales/de.json
+index 445bd3b..5fe2e04 100644
+--- a/src/locales/de.json
++++ b/src/locales/de.json
+@@ -16,5 +16,22 @@
+   },
+   "filterBar": {
+     "all": "Alle"
++  },
++  "recentOrders": {
++    "title": "Letzte Bestellungen",
++    "heading": "Zuletzt"
++  },
++  "pager": {
++    "prev": "Zurück",
++    "next": "Weiter",
++    "position": "Seite {{page}} von {{count}}"
++  },
++  "resultCount": {
++    "label": "{{count}} Bestellungen",
++    "reset": "Zurücksetzen"
++  },
++  "refresh": {
++    "label": "Aktualisieren",
++    "count": "{{count}} Bestellungen geladen"
+   }
+-}
+\ No newline at end of file
++}
+diff --git a/src/locales/en.json b/src/locales/en.json
+index 3ad3cff..e10860e 100644
+--- a/src/locales/en.json
++++ b/src/locales/en.json
+@@ -16,5 +16,22 @@
+   },
+   "filterBar": {
+     "all": "All"
++  },
++  "recentOrders": {
++    "title": "Recent orders",
++    "heading": "Recent"
++  },
++  "pager": {
++    "prev": "Previous",
++    "next": "Next",
++    "position": "Page {{page}} of {{count}}"
++  },
++  "resultCount": {
++    "label": "{{count}} orders",
++    "reset": "Reset"
++  },
++  "refresh": {
++    "label": "Refresh",
++    "count": "{{count}} orders loaded"
+   }
+-}
+\ No newline at end of file
++}
